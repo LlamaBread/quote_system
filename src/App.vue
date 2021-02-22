@@ -15,12 +15,14 @@
 <script>
     import Customer from './components/Customer';
     import Header from './components/Header';
+    //import CustomInput from './components/CustomInput';
 
 export default {
   name: 'App',
         components: {
             Customer,
             Header
+            //CustomInput
   }
 }
 </script>

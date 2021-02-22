@@ -2,32 +2,34 @@
     <div>
         <div class="content">
             <div class="search_bar">
-                <input type="text" placeholder="Search for a customer, postcode or plant">
+                <input id="searchbar" type="text" v-model="search" placeholder="Search for a customer, postcode or plant">
                 <img src="../assets/search.png" />
+
             </div>
+            <div id="search_results"></div>
             <div class="customer_table">
-                    <button class="customer_name"  v-for="customer in customers" v-bind="customer" v-bind:key="customer.id" v-on:click="addActiveCustomer(customer)">
-                        {{customer.CustomerName}} <br /> {{customer.CustomerAddress}}
-                    </button>
+                <button class="customer_name"  v-for="customer in filteredCustomers" v-bind="customer" v-bind:key="customer.id" v-on:click="addActiveCustomer(customer)">
+                    {{customer.CustomerName}} <br /> {{customer.CustomerAddress}}
+            </button>
             </div>
 
+        <div class="customer_form hide" id="customer_form">
+            <form>
+                <img id="cross" v-on:click="classToggle" src="../assets/x-mark-32.png" />
+                <label class="form_field" for="name">Name:  </label>
+                <input class="form_field" type="text" id="name" name="name" v-model="name" required> <br />
+                <label class="form_field" for="email">Email Address:  </label>
+                <input class="form_field" type="text" id="email" name="email" v-model="email" required> <br />
+                <label class="form_field" for="number">Phone Number:  </label>
+                <input class="form_field" type="text" id="number" name="number" v-model="number" maxlength="11" size="11" required>  <br />
+                <label class="form_field" for="address">Address:  </label>
+                <textarea class="form_field" name="address:" id="address" v-model="address" cols="40" rows="5"></textarea> <br />
+                <input class="form_field" type="radio" id="wholesaler" name="wholesaler" value="wholesaler" checked="checked">
+                <label class="form_field" for="wholesaler">  Wholesaler</label><br>
 
-            <div class="customer_form hide" id="customer_form">
-                <form>
-                    <img id="cross" v-on:click="classToggle" src="../assets/x-mark-32.png" />
-                    <label class="form_field" for="name">Name:  </label>
-                    <input class="form_field" type="text" id="name" name="name" required> <br />
-                    <label class="form_field" for="email">Email Address:  </label>
-                    <input class="form_field" type="text" id="email" name="email" required> <br />
-                    <label class="form_field" for="number">Phone Number:  </label>
-                    <input class="form_field" type="text" id="number" name="number" maxlength="11" size="11" required>  <br />
-                    <label class="form_field" for="address">Address:  </label>
-                    <textarea class="form_field" name="address:" id="address" cols="40" rows="5"></textarea> <br />
-                    <input class="form_field" type="radio" id="wholesaler" name="wholesaler" value="wholesaler" checked="checked">
-                    <label class="form_field" for="wholesaler">  Wholesaler</label><br>
-                    <input id="submit_button" type="submit" value="Add New Customer">
-                </form>
-            </div>
+            </form>
+            <input type="submit" id="submit_button" v-on:click="postCustomer" value="Add New Customer"/>
+        </div>
         </div>
         <footer>
             <div class="footer_buttons">
@@ -42,32 +44,25 @@
 
 <script>
     import axios from 'axios'
+
     export default {
+
         data() {
             return {
-                customers: null,
+                app: null,
+                customer: null,
+                customers: [],
+                search: '',
                 loading: true,
                 errored: false,
-                customer: null
-                //activeCustomer: null,
-                //newActiveCustomer: null,
-                //selectedCustomer: null
+                response: '',
+                name: null,
+                email: null,
+                number: null,
+                address: null
             }
         },
-        mounted() {
-            
-            //localStorage.setItem('customer', JSON.stringify(customer));
-
-            //if (localStorage.getItem('customer')) {
-            //    try {
-            //        //var activeCustomer = this.activeCustomer;
-            //        this.activeCustomer = JSON.parse(localStorage.getIem(customer));
-
-            //    }
-            //    catch (e) {
-            //        localStorage.removeItem('customer');
-            //    }
-            //}
+        mounted() { //get request to pull customer list
 
             axios
                 .get('http://ahillsquoteservice.azurewebsites.net/api/customer/all')
@@ -81,87 +76,61 @@
                 .finally(() => this.loading = false)
         },
         methods: {
-            addActiveCustomer(customer) {
-                //var activeCustomer = this.activeCustomer;
+
+            addActiveCustomer(customer) { //selects the customers name, displays it and adds the selected customer to local storage
                 document.getElementById("selectedCustomerName").innerHTML = customer.CustomerName;
                 document.getElementById("selectedCustomerAddress").innerHTML = customer.CustomerAddress;
-                localStorage.setItem("customer", JSON.stringify(customer.CustomerId));
+                localStorage.setItem("customer", JSON.stringify(customer));
             },
 
-        //        if (!this.customer) {
-        //            return;
-        //        }
+            postCustomer() { //adds a new customer to the database api
+                var custRef = '';
+                    axios.post('https://ahillsquoteservice.azurewebsites.net/api/Customer', {
+                        CustomerReference: custRef,
+                        CustomerName: this.name, 
+                        CustomerTel: this.number, 
+                        CustomerAddress: this.address, 
+                        CustomerEmail: this.email, 
+                        SageCustomer: false
 
-        //        this.customer.push(this.customer);
-        //        this.customer = '';
-        //        this.saveCustomer();
-        //    },
-        //    removeCustomer(x) {
-        //        this.Customer.splice(x, 1);
-        //        this.saveCustomer();
-        //    },
-        //    saveCustomer() {
-        //        const parsed = JSON.stringify(this.customer);
-        //        localStorage.setItem('customer', parsed);
-        //},
-            //persist() {
-            //    localStorage.activeCustomer = this.activeCustomer;
-            //    console.log('now pretend I did more stuff...');
-            //}
-            //randomQuote() {
+                    })
+                        .then((response) => {
+                            console.log(response);
+                        })
+                        .catch((error) => {
+                            alert("Error saving customer");
+                            console.log(error);
+                        });
 
-            //    var array = [this.customers];
-            //    var cpt = 0 ;
+            },
 
-            //    if (cpt < array.length - 1)
-            //        cpt++;
-            //    else
-            //        cpt = 0;
-
-            //    document.querySelector("#selectedCustomer").innerHTML = array[cpt];
-            //selectCustomer() {
-            //    axios
-            //        .get('http://ahillsquoteservice.azurewebsites.net/api/customer/all')
-            //        .then(response => {
-            //            this.customers = response.data
-            //        })
-
-            //},
-            classToggle() {
+            classToggle() { //hides and shows the customer form
                 var element = document.getElementById("customer_form");
                 element.classList.toggle("hide");
             },
-            //search() {
-            //    fetch(
-            //        "${this.search}"
-            //    )
-            //        .then(response => response.json())
-            //        .then(data => {
-            //            this.result = data.results;
-            //            console.log(data);
-            //        });
-            //}
 
-            //watch: {
-            //    activeCustomer(newActiveCustomer) {
-            //        localStorage.activeCustomer = newActiveCustomer;
-            //    }
-            //}
-            //created() {
-            //    // POST request using axios with error handling will create a new customer
-            //    const newCustomer = { CustomerName: this.CustomerName };
-            //    axios.post("http://ahillsquoteservice.azurewebsites.net/Help/Api/POST-api-Customer", newCustomer)
-            //        .then(response => this.newCustomerId = response.data.id)
-            //        .catch(error => {
-            //            this.errorMessage = error.message;
-            //            console.error("There was an error!", error);
-            //        });
-            //}
+        },
+        computed: {
+            filteredCustomers() { //filtered search
+                let tempCustomers = this.customers
+                if (this.search == '') {
+                    return tempCustomers;
+                }
+                else {
+                    tempCustomers = tempCustomers.filter((item) => item.CustomerName.toLowerCase().includes(this.search.toLowerCase()))
+                }
+                return tempCustomers;
+            }
         }
-    }
+    };
+
 </script>
 
 <style>
+    * {
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+    }
 
     .content {
         max-width: 90%;
@@ -189,6 +158,7 @@
         grid-template-columns: auto auto;
         padding-top: 10px;
         z-index: 0;
+        padding-left: 0;
     }
 
     .customer_form {
